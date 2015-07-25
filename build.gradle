@@ -1,0 +1,110 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    dependencies {
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'distribution'
+
+ext.configFile = file 'build.properties'
+
+configFile.withReader {
+	def prop = new Properties()
+	prop.load(it)
+	project.ext.config = new ConfigSlurper().parse prop
+}
+
+allprojects {
+    apply plugin: "eclipse"
+    apply plugin: "idea"
+
+    ext {
+        appName = 'Summer-Project'
+		buildNumber = System.getenv().get("BUILD_NUMBER") ?: 'dev'
+        gdxVersion = '1.6.1'
+        roboVMVersion = '1.2.0'
+        box2DLightsVersion = '1.3'
+        ashleyVersion = '1.4.0'
+        aiVersion = '1.5.0'
+    }
+	
+	version = "${config.majorVersion}.${config.minorVersion}.${buildNumber}"
+
+    repositories {
+        mavenCentral()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    }
+}
+
+project(":desktop") {
+    apply plugin: "java"
+
+
+    dependencies {
+        compile project(":core")
+        compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+    }
+}
+
+project(":core") {
+    apply plugin: "java"
+
+    dependencies {
+        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+        compile "com.kotcrab.vis:vis-ui:0.7.7"
+        compile fileTree(dir: '../libs', include: 'jnlua-1.0.4.jar')
+        compile fileTree(dir: '../libs', include: 'jnlua-1.0.4-natives.jar')
+    }
+}
+
+distributions {
+    main {
+        baseName = "${appName}"
+        contents {
+            from { 'desktop/build/libs' }
+            from ('core/assets') {
+                exclude 'content'
+				exclude 'logs'
+                exclude '**/*.cfg'
+                exclude '**/*.xml'
+            }
+        }
+    }
+}
+
+distTar {
+    archiveName "${appName}-${version}.tar"
+}
+
+distZip {
+    archiveName "${appName}-${version}.zip"
+}
+
+task dist() {
+    doFirst {
+        println "Compiling & Packaging for ${appName}!"
+        delete('build/distributions')
+    }
+
+    doLast {
+        distTar.execute();
+        distZip.execute();
+
+        delete('core/build')
+        delete('desktop/build')
+    }
+}
+
+dist.dependsOn 'desktop:dist'
+
+tasks.eclipse.doLast {
+    delete ".project"
+}

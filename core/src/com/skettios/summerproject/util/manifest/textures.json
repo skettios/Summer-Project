@@ -1,0 +1,8 @@
+[
+    {
+        "badlogic": "badlogic.jpg",
+        "player": "player.png",
+        "level_0": "background/level_0.jpg",
+        "sidebar": "gui/sidebar.png"
+    }
+]
