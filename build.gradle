@@ -75,6 +75,7 @@ distributions {
 				exclude 'logs'
                 exclude '**/*.cfg'
                 exclude '**/*.xml'
+                exclude 'com'
             }
         }
     }

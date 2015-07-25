@@ -6,19 +6,7 @@ sourceSets.main.java.srcDirs = [ "src/" ]
 project.ext.mainClassName = "com.skettios.summerproject.DesktopLauncher"
 project.ext.assetsDir = new File("../core/assets");
 
-task copyAssetManifests(type: Copy) {
-    from {
-        files('../core/src/com/skettios/summerproject/util/manifest') {
-            include '**/*.json'
-        }
-    }
-
-    into('../core/build/classes/main/com/skettios/summerproject/util/manifest')
-}
-
 task run(dependsOn: classes, type: JavaExec) {
-    copyAssetManifests.execute()
-
     main = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
@@ -27,8 +15,6 @@ task run(dependsOn: classes, type: JavaExec) {
 }
 
 task dist(type: Jar) {
-    copyAssetManifests.execute()
-
     archiveName = 'Summer-Project.jar'
 
     from files(sourceSets.main.output.classesDir)
