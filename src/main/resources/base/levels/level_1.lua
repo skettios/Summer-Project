@@ -1,4 +1,4 @@
--- TODO(skettios): Get more assets ><
+-- TODO(skettios): Get more assets >< ${version}
 
 local player = EntityFactory:createPlayer(Assets:getTexture('enemy')):setInitialPosition(200, 100)
 local background = GraphicFactory:createBackground(Assets:getTexture('level_1'))

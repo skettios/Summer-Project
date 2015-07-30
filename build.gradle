@@ -1,92 +1,90 @@
 buildscript {
-    repositories {
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    }
-    dependencies {
-    }
+	repositories {
+		mavenCentral()
+		maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+	}
+	
+	dependencies {
+	
+	}
 }
 
+apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'distribution'
 
-ext.configFile = file 'build.properties'
-
-configFile.withReader {
-	def prop = new Properties()
-	prop.load(it)
-	project.ext.config = new ConfigSlurper().parse prop
-}
-
-allprojects {
-    apply plugin: "eclipse"
-    apply plugin: "idea"
-
-    ext {
-        appName = 'Summer-Project'
-		buildNumber = System.getenv().get("BUILD_NUMBER") ?: 'dev'
-        gdxVersion = '1.6.1'
-        roboVMVersion = '1.2.0'
-        box2DLightsVersion = '1.3'
-        ashleyVersion = '1.4.0'
-        aiVersion = '1.5.0'
-    }
+ext {
+	configFile = file 'build.properties'
+	configFile.withReader {
+		def prop = new Properties()
+		prop.load(it)
+		config = new ConfigSlurper().parse prop
+	}
+	appName = "${config.appName}"
+	buildNumber = System.getenv().get('BUILD_NUMBER') ?: 'dev'
+	gdxVersion = '1.6.1'
 	
-	version = "${config.majorVersion}.${config.minorVersion}.${buildNumber}"
-
-    repositories {
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-    }
+	mainClass = 'com.skettios.summerproject.DesktopLauncher'
 }
 
-project(":desktop") {
-    apply plugin: "java"
+version = "${config.majorVersion}.${config.minorVersion}.${buildNumber}-${config.releaseType}"
 
-
-    dependencies {
-        compile project(":core")
-        compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
-    }
+repositories {
+	mavenCentral()
+	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+	maven { url "https://oss.sonatype.org/content/repositories/releases/" }
 }
 
-project(":core") {
-    apply plugin: "java"
+dependencies {
+	compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+	compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+	compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+	compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+	compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+	compile "com.kotcrab.vis:vis-ui:0.7.7"
+	compile "org.apache.logging.log4j:log4j-core:2.3"
+	compile "net.lingala.zip4j:zip4j:1.3.2"
+	compile "com.jtattoo:JTattoo:1.6.11"
+	compile fileTree(dir: 'libs', include: 'jnlua-1.0.4.jar')
+	compile fileTree(dir: 'libs', include: 'jnlua-1.0.4-natives.jar')
+}
 
-    dependencies {
-        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        compile "com.kotcrab.vis:vis-ui:0.7.7"
-		compile "org.apache.logging.log4j:log4j-core:2.3"
-		compile "net.lingala.zip4j:zip4j:1.3.2"
-		compile "com.jtattoo:JTattoo:1.6.11"
-        compile fileTree(dir: '../libs', include: 'jnlua-1.0.4.jar')
-        compile fileTree(dir: '../libs', include: 'jnlua-1.0.4-natives.jar')
-    }
+sourceSets {
+	main {
+		java {
+			srcDir 'src/main/java'
+		}
+		resources {
+			srcDir 'src/main/resources'
+		}
+	}
+	test {
+		resources {
+			srcDir 'src/test/resources'
+		}
+	}
+}
+
+processResources {
+	from(sourceSets.main.resources.srcDirs) {
+		include '**/*.json'
+		include '**/*.lua'
+	
+		expand(version: project.version)
+	}
+	
+	from (sourceSets.main.resources.srcDirs) {
+		exclude '**/*.json'
+		exclude '**/*.lua'
+	}
 }
 
 distributions {
     main {
         baseName = "${appName}"
         contents {
-            from { 'desktop/build/libs' }
-            from ('core/assets') {
-                // Directories
-				exclude 'logs'
-                exclude 'scripts'
-                exclude 'base'
-                exclude 'audio'
-                exclude 'textures'
-
-                // Files
-                exclude '**/*.cfg'
-                exclude '**/*.xml'
-                exclude '**/*.json'
-                exclude '**/*.png'
-            }
+            from { 'build/libs' }
             from { 'build/data' }
         }
     }
@@ -100,57 +98,115 @@ distZip {
     archiveName "${appName}-${version}.zip"
 }
 
-task dist() {
-    doFirst {
-        println "Compiling & Packaging for ${appName}!"
-        delete('build')
+compileJava {
+	doFirst {
+		source = 'build/sources'
+	
+		copy {
+			from 'src/main/java'
+			into 'build/sources'
+		}
 
-        packBase.execute();
-        packTextures.execute();
-        packAudio.execute();
-    }
+		ant.replace(file: 'build/sources/com/skettios/summerproject/util/Constants.java', token: '@VERSION@', value: project.version)
+	}
+}
 
-    doLast {
-        distTar.execute();
-        distZip.execute();
+task syncResources(type: Sync) {
+	from sourceSets.main.resources.srcDirs[0]
+	into sourceSets.test.resources.srcDirs[0]
+}
+
+task run(dependsOn: [classes, syncResources], type: JavaExec) {
+	main = mainClass
+	classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = sourceSets.test.resources.srcDirs[0]
+    ignoreExitValue = true
+}
+
+task buildJar(dependsOn: classes, type: Jar) {
+	archiveName = 'Summer-Project.jar'
+
+	delete('build/libs')
+	
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir) {
+		exclude 'base'
+		exclude 'textures'
+		exclude 'audio'
+	}
+    from {configurations.compile.collect {zipTree(it)}}
+
+    manifest {
+        attributes 'Main-Class': mainClass
     }
 }
 
 task packBase(type: Zip) {
-    println 'Packing base...'
-
-    archiveName = 'base.spp'
-    destinationDir = file('build/data')
-
-    from files('core/assets/base') {
-        exclude '**/*.psd'
-    }
+	println 'Packing base...'
+	
+	archiveName = 'base.spp'
+	destinationDir = file('build/data')
+	
+	from files('build/resources/main/base') {
+		excludes [ 
+			'**/*.psd'
+		]
+	}
 }
 
 task packTextures(type: Zip) {
-    println 'Packing textures...'
-
-    archiveName = 'textures.spp'
-    destinationDir = file('build/data')
-
-    from files('core/assets/textures') {
-        exclude '**/*.psd'
-    }
+	println 'Packing textures...'
+	
+	archiveName = 'textures.spp'
+	destinationDir = file('build/data')
+	
+	from files('build/resources/main/textures') {
+		excludes [
+			'**/*.psd'
+		]
+	}
 }
 
 task packAudio(type: Zip) {
-    println 'Packing audio...'
-
-    archiveName = 'audio.spp'
-    destinationDir = file('build/data')
-
-    from files('core/assets/audio') {
-        exclude '**/*.psd'
-    }
+	println 'Packing audio...'
+	
+	archiveName = 'audio.spp'
+	destinationDir = file('build/data')
+	
+	from files('build/resources/main/audio') {
+		excludes [
+			'**/*.psd'
+		]
+	}
 }
 
-dist.dependsOn 'desktop:dist'
+task dist(dependsOn: buildJar) {
+	doFirst {
+		delete('build/distributions')
+	
+		packBase.execute()
+		packTextures.execute()
+		packAudio.execute()
+	}
+
+	doLast {
+		distTar.execute()
+		distZip.execute()
+	}
+}
+
+task afterEclipseImport(description: "Post processing after project generation", group: "IDE") {
+	doLast {
+		def classpath = new XmlParser().parse(file(".classpath"))
+		new Node(classpath, "classpathentry", [ kind: 'src', path: 'src/test/resources' ]);
+		def writer = new FileWriter(file(".classpath"))
+		def printer = new XmlNodePrinter(new PrintWriter(writer))
+		printer.setPreserveWhitespace(true)
+		printer.print(classpath)
+	}
+}
 
 tasks.eclipse.doLast {
-    delete ".project"
+	delete('.project')
 }

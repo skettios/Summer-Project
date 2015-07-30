@@ -3,7 +3,7 @@ package com.skettios.summerproject.util;
 
 public final class Constants
 {
-    public static final String VERSION = "${version}";
+    public static final String VERSION = "@version@";
     
     // Categories
     public static final short CATEGORY_BOUNDARY = 0x0001;

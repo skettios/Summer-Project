@@ -1,7 +1,6 @@
 ## Project
-*.xml
-*.cfg
-*.log
+build/
+src/test
 
 
 ## Java
