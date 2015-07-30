@@ -4,7 +4,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.skettios.summerproject.gfx.render.IRenderable.RenderType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class RenderLayer
@@ -13,6 +15,7 @@ public class RenderLayer
     private Viewport view;
     private SpriteBatch batch;
 
+    private List<IRenderable> renderList;
     private Map<String, IRenderable> renderMap;
 
     public RenderLayer(RenderType type, Viewport view)
@@ -21,6 +24,7 @@ public class RenderLayer
         this.view = view;
         this.batch = new SpriteBatch();
 
+        this.renderList = new ArrayList<IRenderable>();
         this.renderMap = new HashMap<String, IRenderable>();
     }
 
@@ -29,14 +33,14 @@ public class RenderLayer
         return type;
     }
 
-    public void push(String alias, IRenderable renderable)
+    public void push(IRenderable renderable)
     {
-        renderMap.put(alias, renderable);
+        renderList.add(renderable);
     }
 
-    public IRenderable pop(String alias)
+    public void pop(IRenderable renderable)
     {
-        return renderMap.remove(alias);
+        renderList.remove(renderable);
     }
 
     public Map<String, IRenderable> getRenderMap()
@@ -52,9 +56,9 @@ public class RenderLayer
 
         batch.begin();
         {
-            for (String alias : renderMap.keySet())
+            for (IRenderable renderable : renderList)
             {
-                renderMap.get(alias).render(batch);
+                renderable.render(batch);
             }
         }
         batch.end();

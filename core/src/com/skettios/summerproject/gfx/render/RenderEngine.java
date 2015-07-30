@@ -1,6 +1,10 @@
 package com.skettios.summerproject.gfx.render;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScalingViewport;
@@ -9,9 +13,6 @@ import com.skettios.summerproject.gfx.render.IRenderable.RenderType;
 import com.skettios.summerproject.util.Properties;
 import com.skettios.summerproject.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class RenderEngine
 {
     private Box2DDebugRenderer worldDebugRenderer;
@@ -19,14 +20,12 @@ public class RenderEngine
 
     private List<RenderLayer> layers;
 
-    private Viewport gameView;
-    private Viewport guiView;
+    public RenderLayer background;
+    public RenderLayer actor;
+    public RenderLayer gui;
 
-    protected RenderLayer background;
-    protected RenderLayer map;
-    protected RenderLayer map_obj;
-    protected RenderLayer actor;
-    protected RenderLayer gui;
+    public Viewport gameView;
+    public Viewport guiView;
 
     public RenderEngine()
     {
@@ -41,8 +40,6 @@ public class RenderEngine
         guiView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         background = addLayer(new RenderLayer(RenderType.BACKGROUND, gameView));
-        map = addLayer(new RenderLayer(RenderType.MAP, gameView));
-        map_obj = addLayer(new RenderLayer(RenderType.MAP_OBJ, gameView));
         actor = addLayer(new RenderLayer(RenderType.ENTITY, gameView));
         gui = addLayer(new RenderLayer(RenderType.GUI, guiView));
     }
@@ -55,56 +52,24 @@ public class RenderEngine
 
     public void push(IRenderable renderable)
     {
-        String renderName = renderable.getRenderName();
-        boolean containsIndex = false;
-
         for (RenderLayer layer : layers)
         {
-            String layerRenderName = renderName;
-            if (!renderName.contains(layer.getRenderType().name()))
-            {
-                layerRenderName = layer.getRenderType() + "_" + renderName;
-            }
-            String indexString = layerRenderName.substring(layerRenderName.lastIndexOf('_') + 1);
-            for (int i = 0; i < indexString.length(); i++)
-            {
-                containsIndex = Character.isDigit(indexString.charAt(i));
-            }
-            int layerRenderIndex = 0;
             if (layer.getRenderType() == renderable.getRenderType())
             {
-                if (!containsIndex)
-                {
-                    for (IRenderable layerRenderable : layer.getRenderMap().values())
-                    {
-                        if (layerRenderable.getRenderName().contains(layerRenderName))
-                        {
-                            layerRenderIndex++;
-                        }
-                    }
-
-                    layerRenderName += "_" + layerRenderIndex;
-                }
-
-                renderable.setRenderName(layerRenderName);
-                layer.push(layerRenderName, renderable);
+                layer.push(renderable);
             }
         }
     }
 
-    public IRenderable pop(IRenderable renderable)
+    public void pop(IRenderable renderable)
     {
-        String renderName = renderable.getRenderName();
-
         for (RenderLayer layer : layers)
         {
             if (layer.getRenderType() == renderable.getRenderType())
             {
-                return layer.pop(renderName);
+                layer.pop(renderable);
             }
         }
-
-        return null;
     }
 
     public void setWorld(World world)
@@ -117,14 +82,14 @@ public class RenderEngine
         gameView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         guiView.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
-        Gdx.gl.glClear(Gdx.gl.GL_COLOR_BUFFER_BIT | Gdx.gl.GL_DEPTH_BUFFER_BIT);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         for (RenderLayer layer : layers)
         {
             layer.render();
         }
 
-        if (Properties.DEBUG_MODE)
+        if (worldDebugRenderer != null && Properties.DEBUG_MODE)
         {
             worldDebugRenderer.render(world.getWorld(), gameView.getCamera().combined);
         }

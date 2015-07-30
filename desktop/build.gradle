@@ -22,7 +22,10 @@ task dist(type: Jar) {
     from {configurations.compile.collect {zipTree(it)}}
     from {
         files(project.assetsDir) {
-            exclude 'scripts'
+            exclude 'base'
+            exclude 'audio'
+            exclude 'textures'
+            exclude 'levels'
             exclude 'logs'
             exclude '**/*.cfg'
             exclude '**/*.xml'

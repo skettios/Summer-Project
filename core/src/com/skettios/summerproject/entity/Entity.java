@@ -1,7 +1,5 @@
 package com.skettios.summerproject.entity;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -9,22 +7,21 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
-import com.skettios.summerproject.util.Constants;
 import com.skettios.summerproject.world.IWorldObject;
 import com.skettios.summerproject.world.World;
 
 public abstract class Entity implements IWorldObject
 {
-    protected Sprite sprite;
-    protected String renderName;
+    public Sprite sprite;
+    protected Vector2 initialPos = Vector2.Zero;
     protected World world;
+    protected float collisionBoxScale = 1f;
     protected Body collisionBody;
     protected Fixture collisionFixture;
 
-    public Entity(String renderName, Texture texture)
+    public Entity(Texture texture)
     {
         sprite = new Sprite(texture);
-        this.renderName = renderName;
     }
 
     @Override
@@ -32,14 +29,16 @@ public abstract class Entity implements IWorldObject
     {
         this.world = world;
         PolygonShape collisionBox = new PolygonShape();
-        collisionBox.setAsBox(sprite.getWidth() / (2 / sprite.getScaleX()), sprite.getHeight() / (2 / sprite.getScaleY()), new Vector2(sprite.getOriginX(), sprite.getOriginY()), sprite.getRotation());
+        collisionBox.setAsBox(sprite.getWidth() / (2 / sprite.getScaleX()) * collisionBoxScale, sprite.getHeight() / (2 / sprite.getScaleY()) * collisionBoxScale, new Vector2(sprite.getOriginX(), sprite.getOriginY()), sprite.getRotation());
 
         BodyDef collisionBodyDef = new BodyDef();
-        collisionBodyDef.type = BodyType.DynamicBody;
+        collisionBodyDef.type = getBodyType();
         collisionBodyDef.fixedRotation = true;
 
         collisionBody = world.getWorld().createBody(collisionBodyDef);
-        collisionBody.setTransform(sprite.getX(), sprite.getY(), 0f);
+        collisionBody.setTransform(initialPos.x, initialPos.y, 0f);
+        collisionBody.setUserData(getClass());
+        collisionBody.setSleepingAllowed(true);
 
         FixtureDef collisionFixtureDef = new FixtureDef();
         collisionFixtureDef.density = 0.005f;
@@ -47,31 +46,49 @@ public abstract class Entity implements IWorldObject
         collisionFixtureDef.friction = 0f;
 
         Filter filter = new Filter();
-        filter.categoryBits = Constants.CATEGORY_PLAYER;
-        filter.maskBits = Constants.MASK_PLAYER;
+        filter.categoryBits = getCollisionCategory();
+        filter.maskBits = getCollisionMask();
 
         collisionFixture = collisionBody.createFixture(collisionFixtureDef);
+        collisionFixture.setUserData(this);
         collisionFixture.setFilterData(filter);
 
         collisionBox.dispose();
     }
 
-    @Override
-    public String getRenderName()
-    {
-        return renderName;
-    }
+    public abstract BodyType getBodyType();
 
-    @Override
-    public void setRenderName(String renderName)
-    {
-        this.renderName = renderName;
-    }
+    public abstract short getCollisionCategory();
+
+    public abstract short getCollisionMask();
 
     @Override
     public RenderType getRenderType()
     {
         return RenderType.ENTITY;
+    }
+
+    public Texture getTexture()
+    {
+        return sprite.getTexture();
+    }
+
+    public Entity setInitialPosition(float x, float y)
+    {
+        initialPos = new Vector2(x, y);
+        return this;
+    }
+
+    public Entity setInitialPosition(Vector2 pos)
+    {
+        initialPos = pos;
+        return this;
+    }
+
+    public Entity setCollisionBoxScale(float scale)
+    {
+        collisionBoxScale = scale;
+        return this;
     }
 
     public Entity setColor(Color color)
@@ -94,14 +111,14 @@ public abstract class Entity implements IWorldObject
     }
 
     @Override
-    public boolean destroy()
+    public void dispose()
     {
-        if (world == null)
-        {
-            return false;
-        }
-
         world.pop(this);
-        return true;
+    }
+
+    @Override
+    public void destroy(World world)
+    {
+        world.getWorld().destroyBody(collisionBody);
     }
 }

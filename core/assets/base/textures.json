@@ -1,0 +1,10 @@
+[
+    {
+        "badlogic": "badlogic.jpg",
+        "player": "player.png",
+        "enemy": "enemy.png",
+        "level_1": "background/level_1.jpg",
+        "sidebar": "gui/sidebar.png",
+        "player_bullet": "player_bullet.png"
+    }
+]

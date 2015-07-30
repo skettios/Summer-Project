@@ -49,6 +49,19 @@ public final class Properties
         }
     }
 
+    public static void set(String key, String value)
+    {
+        try
+        {
+            properties.setProperty(key, value);
+            properties.store(propertiesFile.writer(false), "Summer-Project Properties");
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     private static void generateDefaults()
     {
         properties.setProperty("DebugMode", Boolean.toString(false));

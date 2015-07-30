@@ -7,8 +7,7 @@ public class StateManager
     public enum State
     {
         MAIN_MENU(new StateMainMenu()),
-        GAME(new StateGame())
-        ;
+        GAME(new StateGame());
 
         private IState state;
 

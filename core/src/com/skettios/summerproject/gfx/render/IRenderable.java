@@ -7,19 +7,11 @@ public interface IRenderable
     enum RenderType
     {
         BACKGROUND,
-        MAP,
-        MAP_OBJ,
         ENTITY,
         GUI
     }
 
-    String getRenderName();
-
-    void setRenderName(String renderName);
-
     RenderType getRenderType();
 
     void render(SpriteBatch batch);
-
-    boolean destroy();
 }

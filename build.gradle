@@ -60,6 +60,9 @@ project(":core") {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         compile "com.kotcrab.vis:vis-ui:0.7.7"
+		compile "org.apache.logging.log4j:log4j-core:2.3"
+		compile "net.lingala.zip4j:zip4j:1.3.2"
+		compile "com.jtattoo:JTattoo:1.6.11"
         compile fileTree(dir: '../libs', include: 'jnlua-1.0.4.jar')
         compile fileTree(dir: '../libs', include: 'jnlua-1.0.4-natives.jar')
     }
@@ -71,12 +74,20 @@ distributions {
         contents {
             from { 'desktop/build/libs' }
             from ('core/assets') {
-                exclude 'content'
+                // Directories
 				exclude 'logs'
+                exclude 'scripts'
+                exclude 'base'
+                exclude 'audio'
+                exclude 'textures'
+
+                // Files
                 exclude '**/*.cfg'
                 exclude '**/*.xml'
-                exclude 'com'
+                exclude '**/*.json'
+                exclude '**/*.png'
             }
+            from { 'build/data' }
         }
     }
 }
@@ -92,15 +103,49 @@ distZip {
 task dist() {
     doFirst {
         println "Compiling & Packaging for ${appName}!"
-        delete('build/distributions')
+        delete('build')
+
+        packBase.execute();
+        packTextures.execute();
+        packAudio.execute();
     }
 
     doLast {
         distTar.execute();
         distZip.execute();
+    }
+}
 
-        delete('core/build')
-        delete('desktop/build')
+task packBase(type: Zip) {
+    println 'Packing base...'
+
+    archiveName = 'base.spp'
+    destinationDir = file('build/data')
+
+    from files('core/assets/base') {
+        exclude '**/*.psd'
+    }
+}
+
+task packTextures(type: Zip) {
+    println 'Packing textures...'
+
+    archiveName = 'textures.spp'
+    destinationDir = file('build/data')
+
+    from files('core/assets/textures') {
+        exclude '**/*.psd'
+    }
+}
+
+task packAudio(type: Zip) {
+    println 'Packing audio...'
+
+    archiveName = 'audio.spp'
+    destinationDir = file('build/data')
+
+    from files('core/assets/audio') {
+        exclude '**/*.psd'
     }
 }
 

@@ -1,5 +1,7 @@
 package com.skettios.summerproject;
 
+import java.io.File;
+
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
@@ -8,18 +10,17 @@ import com.badlogic.gdx.utils.SharedLibraryLoader;
 import com.naef.jnlua.NativeSupport;
 import com.naef.jnlua.NativeSupport.Loader;
 
-import java.io.File;
-
 public class DesktopLauncher
 {
     public static void main(String[] arg)
     {
-        NativeLoader.load();
-
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.width = 800;
         config.height = 600;
-        config.addIcon("content/icon.png", FileType.Internal);
+        config.addIcon("icon.png", FileType.Internal);
+
+        NativeLoader.load();
+
         new LwjglApplication(new SummerProject(), config);
     }
 
@@ -31,9 +32,9 @@ public class DesktopLauncher
             File nativesDir = null;
             try
             {
-                if (loader.isWindows)
+                if (SharedLibraryLoader.isWindows)
                 {
-                    if (loader.is64Bit)
+                    if (SharedLibraryLoader.is64Bit)
                     {
                         nativesDir = loader.extractFile("windows/64-bit/lua52.dll", null).getParentFile();
                         loader.extractFile("windows/64-bit/jnlua52.dll", nativesDir.getName());
@@ -45,9 +46,9 @@ public class DesktopLauncher
                     }
                 }
 
-                if (loader.isLinux)
+                if (SharedLibraryLoader.isLinux)
                 {
-                    if (loader.is64Bit)
+                    if (SharedLibraryLoader.is64Bit)
                     {
                         // TODO(skettios): GET 64-BIT LUA LINUX BINARIES
                     }
@@ -57,9 +58,9 @@ public class DesktopLauncher
                     }
                 }
 
-                if (loader.isMac)
+                if (SharedLibraryLoader.isMac)
                 {
-                    if (loader.is64Bit)
+                    if (SharedLibraryLoader.is64Bit)
                     {
                         // TODO(skettios): GET 64-BIT LUA MAC BINARIES
                     }
