@@ -37,13 +37,10 @@ public class StateMainMenu implements IState
     public void update(StateManager stateManager, float deltaTime)
     {
         if (Gdx.input.isKeyJustPressed(Keys.Z))
-        {
             stateManager.pop();
-        }
+
         if (Gdx.input.isKeyJustPressed(Keys.ESCAPE))
-        {
             Gdx.app.exit();
-        }
 
         gui.update(stateManager, deltaTime);
     }

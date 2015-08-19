@@ -27,7 +27,7 @@ public class StateGame implements IState
     public State onPush(StateManager stateManager)
     {
         world.initialize();
-        LevelManager.setLevel("Level_1");
+        LevelManager.setLevel("Level_2");
         SummerProject.getInstance().renderEngine.push(gui);
 
         return State.GAME;

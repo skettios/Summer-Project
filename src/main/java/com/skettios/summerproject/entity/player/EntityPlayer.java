@@ -83,7 +83,7 @@ public class EntityPlayer extends Entity
         {
             if (bulletCounter == 5)
             {
-                world.push(EntityFactory.createPlayerBullet(this, Assets.getTexture("player_bullet"), new Vector2(0, Integer.MAX_VALUE)));
+                world.push(EntityFactory.createPlayerBullet(this, Assets.getTexture("player_bullet"), new Vector2(0f, 50f)));
                 bulletCounter = 0;
             }
 

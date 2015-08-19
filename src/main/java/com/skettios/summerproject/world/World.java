@@ -30,8 +30,7 @@ public class World
 
     public World()
     {
-        this.world = new com.badlogic.gdx.physics.box2d.World(
-                new Vector2(0, 0), true);
+        this.world = new com.badlogic.gdx.physics.box2d.World(new Vector2(0, 0), true);
         this.worldObjects = new ArrayList<IWorldObject>();
         this.worldObjectDestructionQueue = new ArrayList<IWorldObject>();
         this.world.setContactListener(new WorldContactListener());
@@ -186,8 +185,7 @@ public class World
         {
             for (int i = 0; i < worldObjectDestructionQueue.size(); i++)
             {
-                SummerProject.getInstance().renderEngine
-                        .pop(worldObjectDestructionQueue.get(i));
+                SummerProject.getInstance().renderEngine.pop(worldObjectDestructionQueue.get(i));
                 worldObjects.remove(worldObjectDestructionQueue.get(i));
                 worldObjectDestructionQueue.get(i).destroy(this);
             }
@@ -197,7 +195,7 @@ public class World
     }
 
     public void update(float deltaTime)
-    {
+    {    
         if (removeBounds)
         {
             world.destroyBody(bottomBound);
@@ -212,7 +210,7 @@ public class World
         {
             worldObjects.get(i).update(deltaTime);
         }
-
-        world.step(0.033333f, 72, 24);
+        
+        world.step(1f, 32, 12);
     }
 }

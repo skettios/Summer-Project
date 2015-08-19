@@ -41,17 +41,14 @@ public abstract class Entity implements IWorldObject
         collisionBody.setSleepingAllowed(true);
 
         FixtureDef collisionFixtureDef = new FixtureDef();
-        collisionFixtureDef.density = 0.005f;
+        collisionFixtureDef.density = 0f;
         collisionFixtureDef.shape = collisionBox;
         collisionFixtureDef.friction = 0f;
-
-        Filter filter = new Filter();
-        filter.categoryBits = getCollisionCategory();
-        filter.maskBits = getCollisionMask();
+        collisionFixtureDef.filter.categoryBits = getCollisionCategory();
+        collisionFixtureDef.filter.maskBits = getCollisionMask();
 
         collisionFixture = collisionBody.createFixture(collisionFixtureDef);
         collisionFixture.setUserData(this);
-        collisionFixture.setFilterData(filter);
 
         collisionBox.dispose();
     }

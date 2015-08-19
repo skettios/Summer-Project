@@ -25,7 +25,7 @@ ext {
 	buildNumber = System.getenv().get('BUILD_NUMBER') ?: 'dev'
 	gdxVersion = '1.6.1'
 	
-	mainClass = 'com.skettios.summerproject.DesktopLauncher'
+	mainClass = 'com.skettios.summerproject.SummerProject'
 }
 
 version = "${config.majorVersion}.${config.minorVersion}.${buildNumber}-${config.releaseType}"
@@ -111,16 +111,16 @@ compileJava {
 	}
 }
 
-task syncResources(type: Sync) {
+task copyResources(type: Copy) {
 	from sourceSets.main.resources.srcDirs[0]
-	into sourceSets.test.resources.srcDirs[0]
+	into 'bin'
 }
 
-task run(dependsOn: [classes, syncResources], type: JavaExec) {
+task run(dependsOn: [classes, copyResources], type: JavaExec) {
 	main = mainClass
 	classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in
-    workingDir = sourceSets.test.resources.srcDirs[0]
+    workingDir = 'bin'
     ignoreExitValue = true
 }
 
@@ -193,17 +193,6 @@ task dist(dependsOn: buildJar) {
 	doLast {
 		distTar.execute()
 		distZip.execute()
-	}
-}
-
-task afterEclipseImport(description: "Post processing after project generation", group: "IDE") {
-	doLast {
-		def classpath = new XmlParser().parse(file(".classpath"))
-		new Node(classpath, "classpathentry", [ kind: 'src', path: 'src/test/resources' ]);
-		def writer = new FileWriter(file(".classpath"))
-		def printer = new XmlNodePrinter(new PrintWriter(writer))
-		printer.setPreserveWhitespace(true)
-		printer.print(classpath)
 	}
 }
 
